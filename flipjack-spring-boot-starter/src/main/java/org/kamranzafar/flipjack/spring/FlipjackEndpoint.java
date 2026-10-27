@@ -15,6 +15,7 @@
  */
 package org.kamranzafar.flipjack.spring;
 
+import org.kamranzafar.flipjack.FeatureContext;
 import org.kamranzafar.flipjack.FeatureToggles;
 import org.kamranzafar.flipjack.Toggled;
 import org.springframework.beans.factory.BeanFactory;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Selector;
+import org.springframework.lang.Nullable;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -66,7 +68,11 @@ public class FlipjackEndpoint {
     }
 
     @ReadOperation
-    public Map<String, Object> feature(@Selector String name) {
-        return Map.of("feature", name, "enabled", toggles.isEnabled(name));
+    public Map<String, Object> feature(@Selector String name, @Nullable String subject) {
+        if (subject == null) {
+            return Map.of("feature", name, "enabled", toggles.isEnabled(name));
+        }
+        return Map.of("feature", name, "subject", subject,
+                "enabled", toggles.isEnabled(name, FeatureContext.of(subject)));
     }
 }

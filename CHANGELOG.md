@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Optional `subject` query parameter for evaluating a feature through the Actuator endpoint.
+
 ### Documentation
 
 - Gradle (Kotlin and Groovy DSL) dependency snippets next to the Maven ones.
