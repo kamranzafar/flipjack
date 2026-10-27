@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kamranzafar.flipjack.spring;
 
 import org.apache.commons.logging.Log;
@@ -21,7 +22,6 @@ import org.kamranzafar.flipjack.FeatureConsistency;
 import org.kamranzafar.flipjack.FeatureConsistencyReport;
 import org.kamranzafar.flipjack.FeatureToggles;
 import org.kamranzafar.flipjack.Toggled;
-import org.kamranzafar.flipjack.spring.FlipjackProperties.ConsistencyCheck;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -32,58 +32,111 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Runs {@link FeatureConsistency} once all singletons exist (so every toggled bean has been
- * created and a polling source has done its first load), then warns or fails startup
- * according to {@code flipjack.consistency-check}.
+ * Checks consistency between features used by the application and features
+ * available in the configured feature store.
+ *
+ * <p>The check runs after all singleton beans have been initialized so that
+ * toggled beans and inline feature declarations can be discovered before
+ * validation takes place.</p>
  */
 public class FeatureConsistencyChecker implements SmartInitializingSingleton {
 
-    private static final Log LOG = LogFactory.getLog(FeatureConsistencyChecker.class);
+    private static final Log LOG =
+            LogFactory.getLog(FeatureConsistencyChecker.class);
 
     private final FlipjackProperties properties;
     private final ObjectProvider<FeatureToggles> toggles;
     private final ObjectProvider<Toggled> toggledBeans;
     private final BeanFactory beanFactory;
 
-    public FeatureConsistencyChecker(FlipjackProperties properties, ObjectProvider<FeatureToggles> toggles,
-                                     ObjectProvider<Toggled> toggledBeans) {
+    /**
+     * Creates a consistency checker without an explicit BeanFactory.
+     *
+     * @param properties Flipjack configuration properties
+     * @param toggles feature-toggle provider
+     * @param toggledBeans provider for toggled beans
+     */
+    public FeatureConsistencyChecker(
+            FlipjackProperties properties,
+            ObjectProvider<FeatureToggles> toggles,
+            ObjectProvider<Toggled> toggledBeans) {
+
         this(properties, toggles, toggledBeans, null);
     }
 
     /**
-     * With a bean factory, toggled steps held in any bean's fields are checked too.
+     * Creates a consistency checker.
+     *
+     * @param properties Flipjack configuration properties
+     * @param toggles feature-toggle provider
+     * @param toggledBeans provider for toggled beans
+     * @param beanFactory Spring bean factory used to inspect toggled fields
      */
-    public FeatureConsistencyChecker(FlipjackProperties properties, ObjectProvider<FeatureToggles> toggles,
-                                     ObjectProvider<Toggled> toggledBeans, BeanFactory beanFactory) {
+    public FeatureConsistencyChecker(
+            FlipjackProperties properties,
+            ObjectProvider<FeatureToggles> toggles,
+            ObjectProvider<Toggled> toggledBeans,
+            BeanFactory beanFactory) {
+
         this.properties = properties;
         this.toggles = toggles;
         this.toggledBeans = toggledBeans;
         this.beanFactory = beanFactory;
     }
 
+    /**
+     * Performs the consistency check after all singleton beans have been
+     * instantiated.
+     */
     @Override
     public void afterSingletonsInstantiated() {
-        ConsistencyCheck mode = properties.getConsistencyCheck();
-        if (mode == ConsistencyCheck.OFF) {
+
+        FlipjackProperties.ConsistencyCheck mode =
+                properties.getConsistencyCheck();
+
+        if (mode == FlipjackProperties.ConsistencyCheck.OFF) {
             return;
         }
-        Set<String> used = new TreeSet<>(properties.getInlineFeatures());
-        used.addAll(ApplicationFeatures.used(beanFactory, toggledBeans));
-        Optional<FeatureConsistencyReport> result = FeatureConsistency.check(toggles.getObject(), List.of(), used);
+
+        Set<String> used =
+                new TreeSet<>(properties.getInlineFeatures());
+
+        used.addAll(
+                ApplicationFeatures.used(
+                        beanFactory,
+                        toggledBeans
+                )
+        );
+
+        Optional<FeatureConsistencyReport> result =
+                FeatureConsistency.check(
+                        toggles.getObject(),
+                        List.of(),
+                        used
+                );
+
         if (result.isEmpty()) {
-            LOG.debug("Flipjack consistency check skipped: the toggle source can't list its features "
-                    + "(or hasn't loaded yet)");
+            LOG.debug(
+                    "Flipjack consistency check skipped: the toggle source "
+                            + "can't list its features (or hasn't loaded yet)"
+            );
             return;
         }
 
         FeatureConsistencyReport report = result.get();
+
         if (!report.unusedInStore().isEmpty()) {
             LOG.info(report.describeUnused());
         }
+
         if (!report.missingFromStore().isEmpty()) {
-            if (mode == ConsistencyCheck.FAIL) {
-                throw new IllegalStateException(report.describeMissing());
+
+            if (mode == FlipjackProperties.ConsistencyCheck.FAIL) {
+                throw new IllegalStateException(
+                        report.describeMissing()
+                );
             }
+
             LOG.warn(report.describeMissing());
         }
     }
