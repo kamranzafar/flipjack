@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Compile endpoint parameter names so Spring Actuator can bind `/actuator/flipjack/{name}` correctly.
+
 ### Added
 
 - Optional `subject` query parameter for evaluating a feature through the Actuator endpoint.
