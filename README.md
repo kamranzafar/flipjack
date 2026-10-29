@@ -612,6 +612,9 @@ Features you check with `toggles.isEnabled(...)` directly can't be discovered; l
 Runtime changes with the default source: add `spring-cloud-starter` and Actuator, expose
 `refresh`, change the config at its source and `POST /actuator/refresh`.
 `GET /actuator/flipjack` lists every configured or annotated feature with its effective state.
+`GET /actuator/flipjack/{name}` returns one feature's state. Add `?subject=alice` to evaluate
+it for a specific subject; the response includes that subject. Without the parameter, the
+endpoint keeps using the default toggle evaluation as before.
 
 ## Kotlin
 
