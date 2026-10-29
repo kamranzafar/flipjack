@@ -15,13 +15,14 @@
  */
 package org.kamranzafar.flipjack.spring;
 
-import java.lang.reflect.Method;
-import org.springframework.boot.actuate.endpoint.OperationType;
-import org.springframework.boot.actuate.endpoint.invoke.reflect.OperationMethod;
 import org.junit.jupiter.api.Test;
 import org.kamranzafar.flipjack.FeatureContext;
 import org.kamranzafar.flipjack.FeatureToggles;
+import org.springframework.boot.actuate.endpoint.OperationType;
+import org.springframework.boot.actuate.endpoint.invoke.OperationParameter;
+import org.springframework.boot.actuate.endpoint.invoke.reflect.OperationMethod;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +58,7 @@ class FlipjackEndpointTest {
                 .containsExactlyInAnyOrderEntriesOf(Map.of(
                         "feature", "beta", "subject", "alice", "enabled", true));
     }
+
     @Test
     void actuatorCanDiscoverEndpointParameterNames() throws Exception {
         Method method = FlipjackEndpoint.class.getMethod(
@@ -64,8 +66,7 @@ class FlipjackEndpointTest {
         OperationMethod operation = new OperationMethod(method, OperationType.READ);
 
         assertThat(operation.getParameters())
-                .extracting(parameter -> parameter.getName(),
-                        parameter -> parameter.isMandatory())
+                .extracting(OperationParameter::getName, OperationParameter::isMandatory)
                 .containsExactly(
                         tuple("name", true),
                         tuple("subject", false));
