@@ -16,6 +16,8 @@ All notable changes to this project are documented here. The format follows
   toggle source, with `defaultEnabled`, `requireReady(timeout)` and `onEvaluationError`, and
   maps `FeatureContext` to the OpenFeature evaluation context.
 - Optional `subject` query parameter for evaluating a feature through the Actuator endpoint.
+- Spring Boot 4.1 support: the starter works unchanged on Spring Boot 4.1 as well as 3.5, and
+  CI tests it against both.
 
 ### Changed
 
