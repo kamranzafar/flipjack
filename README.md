@@ -686,6 +686,11 @@ flipjack:
   consistency-check: warn        # off | warn (default) | fail: fail startup on features missing from the store
 ```
 
+If the source can't list its features (OpenFeature, a custom source that doesn't override
+`knownFeatures()`, or a polling source that hasn't loaded yet), the check is skipped and
+startup goes on: logged as info under `warn`, and as a warning under `fail`, which has no
+effect with such a source.
+
 Features you check with `toggles.isEnabled(...)` directly can't be discovered; list them under
 `flipjack.inline-features` so they aren't reported as unused, or better, move them into an
 `either` step.

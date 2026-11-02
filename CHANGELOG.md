@@ -17,6 +17,13 @@ All notable changes to this project are documented here. The format follows
   maps `FeatureContext` to the OpenFeature evaluation context.
 - Optional `subject` query parameter for evaluating a feature through the Actuator endpoint.
 
+### Changed
+
+- When the toggle source can't list its features, the Spring Boot consistency check now says
+  it was skipped: as info under `consistency-check: warn`, and as a warning under `fail`,
+  which has no effect with such a source. It was a debug log before. Startup still never
+  fails in this case.
+
 ### Documentation
 
 - Gradle (Kotlin and Groovy DSL) dependency snippets next to the Maven ones.
