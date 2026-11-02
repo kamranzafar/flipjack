@@ -651,7 +651,11 @@ Gradle (Groovy DSL, `build.gradle`):
 implementation 'org.kamranzafar.flipjack:flipjack-spring-boot-starter:1.1.0'
 ```
 
-Then annotate components; fallback classes are resolved as beans.
+Then annotate components; fallback classes are resolved as beans. A fallback bean is looked
+up on the first call made with its feature off, not at startup, so a fallback class with no
+bean, or with several and no `@Primary`, fails that call. Name a class that only the fallback
+implementation is, not the toggled interface, which would resolve to the toggled bean itself.
+Test with each feature off as well as on.
 
 ```yaml
 flipjack:
@@ -661,6 +665,47 @@ flipjack:
     new-quote: false
     dynamic-discount: true
 ```
+
+Several toggleable beans can implement the same interface, for example one pricing engine per
+region, each with its own feature and fallback. Name the beans and inject each with
+`@Qualifier("beanName")`, or with a `@Qualifier` you put on the class. A parameter named after
+the bean isn't enough on its own, since Spring checks `@Primary` before it matches parameter
+names. Each qualifier gets that bean's routing proxy:
+
+```java
+@Service
+public class EuLegacyPricing implements PricingService { ... }
+
+@Service
+public class UsLegacyPricing implements PricingService { ... }
+
+@Service("euPricing")
+@Toggleable(value = "eu-new-pricing", fallback = EuLegacyPricing.class)
+public class EuPricing implements PricingService { ... }
+
+@Service("usPricing")
+@Toggleable(value = "us-new-pricing", fallback = UsLegacyPricing.class)
+public class UsPricing implements PricingService { ... }
+
+@Service
+public class QuoteService {
+    private final PricingService eu;
+    private final PricingService us;
+
+    public QuoteService(@Qualifier("euPricing") PricingService eu,
+                        @Qualifier("usPricing") PricingService us) {
+        this.eu = eu;   // routes between EuPricing and EuLegacyPricing on eu-new-pricing
+        this.us = us;   // routes between UsPricing and UsLegacyPricing on us-new-pricing
+    }
+}
+```
+
+Each fallback is still named by its class, so give each its own class, as here. Injecting a
+fallback bean by its own name (`@Qualifier("euLegacyPricing")`) gets the plain fallback, and
+`List<PricingService>` gets every bean, the toggleable ones as proxies. Anything that asks for
+`PricingService` by type alone fails here, because both toggleable beans are `@Primary`: an
+injection with no qualifier fails at startup, and `ObjectProvider<PricingService>.getIfAvailable()`
+throws when called (its `stream()` still works).
 
 To load toggles from your own store, define a `FeatureToggles` bean that points at one of
 your beans' methods. The configuration-backed default steps aside, and Spring closes the
@@ -827,7 +872,8 @@ Routes are resolved and validated once, when the proxy is built, so each call is
 lookup plus one `isEnabled` per check, and misconfiguration fails at startup: unknown or
 incompatible `fallbackMethod`, `fallback` and `fallbackMethod` on the same method,
 a `whenDisabled` that a fallback would override, `fallbackMethod` at class level, an annotated method that isn't on any proxied interface,
-or a fallback class with no instance available.
+or a fallback class with no instance available (in Spring, fallback beans are looked up on
+the first disabled call instead; see [Spring Boot](#spring-boot)).
 
 ## Rules and limitations
 
@@ -839,8 +885,12 @@ or a fallback class with no instance available.
   field is found, one nested inside another field's object is not.
 - The context is read on the calling thread; context held in a `ThreadLocal` does not
   follow work handed to other threads (`@Async`, executors), so propagate it yourself.
-- Spring: one toggleable bean per interface (it becomes `@Primary`); annotate component
-  classes, not `@Bean` methods.
+- Spring: a toggleable bean becomes `@Primary`, so injecting its interface without a qualifier
+  gets the routing proxy. If two or more toggleable beans implement the same interface, inject
+  each with `@Qualifier` ([example](#spring-boot)); a matching parameter name isn't enough, and
+  anything that looks the interface up by type alone fails, since more than one bean is primary.
+  The same happens if you mark another implementation of a toggled interface `@Primary`
+  yourself. Annotate component classes, not `@Bean` methods.
 
 ## Contributing
 

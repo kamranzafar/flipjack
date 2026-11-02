@@ -202,7 +202,8 @@ public final class ToggledFeature {
         }
 
         /**
-         * Toggles resolved on use, for when the toggle source is created after the proxy.
+         * Toggles resolved on use, for when the toggle source is created after the proxy. The
+         * supplier is called on every call, so memoize it if creating the source is expensive.
          */
         public Builder<T> lazyToggles(Supplier<? extends FeatureToggles> supplier) {
             this.toggles = Objects.requireNonNull(supplier, "toggles");

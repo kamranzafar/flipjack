@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Documentation
+
+- The README's "one toggleable bean per interface" limitation is replaced: several toggleable
+  beans of one interface work when each is injected with `@Qualifier`, with an example of one
+  pricing engine per region. What still fails is any lookup by type alone, including an
+  injection that relies on a matching parameter name, and marking another implementation of a
+  toggled interface `@Primary` yourself.
+- In Spring, fallback beans are looked up on the first call made with the feature off, not at
+  startup; the README now says so, instead of listing a missing fallback among the startup
+  checks.
+- `lazyToggles(...)`: the supplier is called on every call, so memoize it if creating the
+  source is expensive.
+
 ## [1.1.0] - 2026-11-02
 
 ### Fixed
