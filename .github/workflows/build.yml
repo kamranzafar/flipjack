@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Spring Boot 4 line tested alongside the default (3.5, in pom.xml)
+  SPRING_BOOT_4_VERSION: 4.1.2
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -34,13 +38,6 @@ jobs:
       - name: Build and test
         run: mvn --batch-mode --no-transfer-progress verify
 
-      # Dependencies don't change with the JDK, so scan once
-      - name: Scan dependencies for known vulnerabilities (OSV)
-        if: matrix.java == '17'
-        env:
-          OSV_SCANNER_VERSION: v2.7.0
-        run: .github/scripts/osv-scan.sh
-
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -53,8 +50,6 @@ jobs:
   spring-boot-4:
     name: Spring Boot 4.1
     runs-on: ubuntu-latest
-    env:
-      SPRING_BOOT_VERSION: 4.1.2
 
     steps:
       - uses: actions/checkout@v4
@@ -66,12 +61,7 @@ jobs:
           cache: maven
 
       - name: Build and test
-        run: mvn --batch-mode --no-transfer-progress verify -Dspring-boot.version=${SPRING_BOOT_VERSION}
-
-      - name: Scan dependencies for known vulnerabilities (OSV)
-        env:
-          OSV_SCANNER_VERSION: v2.7.0
-        run: .github/scripts/osv-scan.sh -Dspring-boot.version=${SPRING_BOOT_VERSION}
+        run: mvn --batch-mode --no-transfer-progress verify -Dspring-boot.version=${SPRING_BOOT_4_VERSION}
 
       - name: Upload test reports
         if: failure()
@@ -80,3 +70,31 @@ jobs:
           name: test-reports-spring-boot-4
           path: '**/target/surefire-reports/'
           retention-days: 7
+
+  # Scans the dependencies, test scope included, for known vulnerabilities, as resolved for
+  # each supported Spring Boot line. Dependencies don't change with the JDK, so one JDK is enough.
+  dependency-scan:
+    name: Dependency scan (Spring Boot ${{ matrix.spring-boot }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - spring-boot: '3.5'
+            maven-args: ''        # the default in pom.xml
+          - spring-boot: '4.1'
+            maven-args: -Dspring-boot.version=${SPRING_BOOT_4_VERSION}
+    env:
+      OSV_SCANNER_VERSION: v2.7.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Scan dependencies for known vulnerabilities (OSV)
+        run: .github/scripts/osv-scan.sh ${{ matrix.maven-args }}
