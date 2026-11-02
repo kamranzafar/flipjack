@@ -49,7 +49,7 @@ cd flipjack
 mvn verify
 ```
 
-This builds both modules and runs every test. CI runs the same command on Java 17, 21 and 25.
+This builds every module and runs every test. CI runs the same command on Java 17, 21 and 25.
 
 ## Pull requests
 
