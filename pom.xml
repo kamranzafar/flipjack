@@ -14,14 +14,17 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+<!-- child.*.inherit.append.path="false": modules inherit these URLs as they are, instead of
+     with the module name appended, which would point at pages that don't exist -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.kamranzafar.flipjack</groupId>
     <artifactId>flipjack-parent</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
     <name>Flipjack (parent)</name>
     <description>Lightweight runtime feature toggles for Java at class and method level, with no if-else in feature code.</description>
@@ -44,7 +47,9 @@
         </developer>
     </developers>
 
-    <scm>
+    <scm child.scm.connection.inherit.append.path="false"
+         child.scm.developerConnection.inherit.append.path="false"
+         child.scm.url.inherit.append.path="false">
         <connection>scm:git:https://github.com/kamranzafar/flipjack.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/kamranzafar/flipjack.git</developerConnection>
         <url>https://github.com/kamranzafar/flipjack</url>
