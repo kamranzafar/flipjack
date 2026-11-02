@@ -32,20 +32,27 @@ uploaded to Maven Central with the `release` Maven profile.
 
 Replace `1.0.0` with the version being released and `1.0.1` with the next one.
 
-1. **Set the release version** and date the changelog entry:
+`main` is protected: changes reach it through pull requests, which need every CI check to pass.
+
+1. **Set the release version** and date the changelog entry, in a pull request:
 
    ```sh
+   git checkout -b release-1.0.0
    mvn versions:set -DnewVersion=1.0.0 -DgenerateBackupPoms=false
-   # also update the version in README.md (Maven and Gradle snippets) and the date in CHANGELOG.md
+   # also update the version in README.md (Maven and Gradle snippets), and in CHANGELOG.md
+   # rename "Unreleased" to the version and date, and update the compare links at the bottom
    git commit -am "Release 1.0.0"
-   git push
+   git push -u origin release-1.0.0
+   gh pr create --fill --milestone 1.0.0
    ```
 
-   Wait for the Build workflow to pass on that commit.
+   Merge the pull request once its checks pass.
 
-2. **Tag it:**
+2. **Tag the merge commit on `main`:**
 
    ```sh
+   git checkout main
+   git pull
    git tag -a v1.0.0 -m "1.0.0"
    git push origin v1.0.0
    ```
@@ -69,15 +76,19 @@ Replace `1.0.0` with the version being released and `1.0.1` with the next one.
        --notes-file <(sed -n '/^## \[1.0.0\]/,/^## \[/p' CHANGELOG.md | sed '1d;$d')
    ```
 
-5. **Start the next version:**
+5. **Start the next version**, in a pull request:
 
    ```sh
+   git checkout -b start-1.0.1
    mvn versions:set -DnewVersion=1.0.1-SNAPSHOT -DgenerateBackupPoms=false
-   # add an "Unreleased" section to CHANGELOG.md; leave README.md on the released version,
-   # since snapshots aren't published to Maven Central
+   # add an "Unreleased" section and compare link to CHANGELOG.md; leave README.md on the
+   # released version, since snapshots aren't published to Maven Central
    git commit -am "Start 1.0.1-SNAPSHOT"
-   git push
+   git push -u origin start-1.0.1
+   gh pr create --fill
    ```
+
+   Then close the release's milestone on GitHub.
 
 To publish without the manual step in the Portal, add `-Dcentral.autoPublish=true` to the
 `deploy` command.

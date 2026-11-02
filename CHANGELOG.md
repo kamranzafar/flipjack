@@ -4,11 +4,13 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] - 2026-11-02
 
 ### Fixed
 
 - Compile endpoint parameter names so Spring Actuator can bind `/actuator/flipjack/{name}` correctly.
+- Published poms point each module's project and SCM URLs at the repository, not at a
+  non-existent per-module path.
 
 ### Added
 
@@ -68,5 +70,5 @@ First release.
 - Startup consistency check (`off`, `warn` or `fail`) and the `/actuator/flipjack` endpoint.
 - Built and tested against Spring Boot 3.5.
 
-[Unreleased]: https://github.com/kamranzafar/flipjack/compare/v1.0.0...HEAD
+[1.1.0]: https://github.com/kamranzafar/flipjack/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/kamranzafar/flipjack/releases/tag/v1.0.0
