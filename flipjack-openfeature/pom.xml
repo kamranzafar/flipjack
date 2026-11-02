@@ -29,6 +29,19 @@
     <name>Flipjack OpenFeature</name>
     <description>Use any OpenFeature provider as the toggle source for flipjack-core.</description>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- the test classpath's log4j-api, from spring-boot-starter-test; see log4j.version -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-bom</artifactId>
+                <version>${log4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.kamranzafar.flipjack</groupId>

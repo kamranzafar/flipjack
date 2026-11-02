@@ -68,6 +68,10 @@
         <junit.version>5.10.2</junit.version>
         <!-- Align with the Spring Boot version your applications use -->
         <spring-boot.version>3.5.16</spring-boot.version>
+        <!-- Overrides the Jackson that Spring Boot 3.5.16 manages (2.21.4), which has known vulnerabilities -->
+        <jackson.version>2.21.8</jackson.version>
+        <!-- Overrides Spring Boot 3.5.16's log4j-api (2.24.3, test classpath only), which has a known vulnerability -->
+        <log4j.version>2.25.5</log4j.version>
         <!-- Align with the OpenFeature SDK version your applications use -->
         <openfeature.version>1.23.0</openfeature.version>
         <!-- release: server id in settings.xml holding the Central Portal user token -->
@@ -116,6 +120,18 @@
                     <groupId>org.sonatype.central</groupId>
                     <artifactId>central-publishing-maven-plugin</artifactId>
                     <version>0.12.0</version>
+                </plugin>
+                <!-- mvn cyclonedx:makeBom: each module's resolved dependencies, test scope included,
+                     in target/bom.cdx.json for the OSV vulnerability scan (see .github/workflows/build.yml) -->
+                <plugin>
+                    <groupId>org.cyclonedx</groupId>
+                    <artifactId>cyclonedx-maven-plugin</artifactId>
+                    <version>2.9.3</version>
+                    <configuration>
+                        <outputFormat>json</outputFormat>
+                        <outputName>bom.cdx</outputName>
+                        <includeTestScope>true</includeTestScope>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
