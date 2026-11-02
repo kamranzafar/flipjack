@@ -51,6 +51,19 @@ mvn verify
 
 This builds every module and runs every test. CI runs the same command on Java 17, 21 and 25.
 
+CI also scans the dependencies, test scope included, for known vulnerabilities with
+[OSV-Scanner](https://google.github.io/osv-scanner/), and fails the build if it finds any. To
+run the same scan locally (with `osv-scanner` installed):
+
+```sh
+mvn cyclonedx:makeBom
+osv-scanner scan source -L flipjack-core/target/bom.cdx.json \
+    -L flipjack-spring-boot-starter/target/bom.cdx.json -L flipjack-openfeature/target/bom.cdx.json
+```
+
+If it reports a dependency that Spring Boot manages, and no Spring Boot patch release fixes it,
+override the version in the parent `pom.xml` the way `jackson.version` and `log4j.version` do.
+
 ## Pull requests
 
 - Keep each pull request small and focused on one change.

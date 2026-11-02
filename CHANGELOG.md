@@ -24,6 +24,15 @@ All notable changes to this project are documented here. The format follows
   which has no effect with such a source. It was a debug log before. Startup still never
   fails in this case.
 
+### Security
+
+- Build against Jackson 2.21.8 and log4j 2.25.5 instead of the versions Spring Boot 3.5.16
+  manages (Jackson 2.21.4, log4j-api 2.24.3), which have known vulnerabilities. Both are only
+  on Flipjack's own build and test classpath (Jackson through the optional Actuator
+  dependency), so applications get the versions their own Spring Boot manages.
+- CI scans dependencies for known vulnerabilities with OSV-Scanner and fails the build if it
+  finds any.
+
 ### Documentation
 
 - Gradle (Kotlin and Groovy DSL) dependency snippets next to the Maven ones.
