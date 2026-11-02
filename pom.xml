@@ -59,6 +59,7 @@
     <modules>
         <module>flipjack-core</module>
         <module>flipjack-spring-boot-starter</module>
+        <module>flipjack-openfeature</module>
     </modules>
 
     <properties>
@@ -67,6 +68,8 @@
         <junit.version>5.10.2</junit.version>
         <!-- Align with the Spring Boot version your applications use -->
         <spring-boot.version>3.5.16</spring-boot.version>
+        <!-- Align with the OpenFeature SDK version your applications use -->
+        <openfeature.version>1.23.0</openfeature.version>
         <!-- release: server id in settings.xml holding the Central Portal user token -->
         <central.serverId>central</central.serverId>
         <!-- false: upload and validate, then publish by hand in the Central Portal -->

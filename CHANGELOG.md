@@ -12,6 +12,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `flipjack-openfeature` module: `OpenFeatureToggles` uses any OpenFeature provider as the
+  toggle source, with `defaultEnabled`, `requireReady(timeout)` and `onEvaluationError`, and
+  maps `FeatureContext` to the OpenFeature evaluation context.
 - Optional `subject` query parameter for evaluating a feature through the Actuator endpoint.
 
 ### Documentation

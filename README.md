@@ -26,6 +26,7 @@ a fallback, or neither.
 |---|---|---|
 | `flipjack-core` | nothing (Java 17+) | Plain Java, or any DI container |
 | `flipjack-spring-boot-starter` | core + Spring Boot | Auto-wiring of `@Toggleable` beans and `flipjack.*` config |
+| `flipjack-openfeature` | core + OpenFeature SDK | Any OpenFeature provider as the toggle source; see [OpenFeature](#using-an-openfeature-provider) |
 
 Maven:
 
@@ -357,8 +358,9 @@ fallback, is rejected. Mistakes in any of these fail when the proxy is built, at
 ## Toggle sources and decorators
 
 Sources: `PollingFeatureToggles` (polls a loader your application provides; see below),
-`InMemoryFeatureToggles`, `PropertiesFileFeatureToggles` (reloads on change), or implement
-the one-method `FeatureToggles` interface.
+`InMemoryFeatureToggles`, `PropertiesFileFeatureToggles` (reloads on change),
+`OpenFeatureToggles` (any OpenFeature provider, in `flipjack-openfeature`; see below), or
+implement the one-method `FeatureToggles` interface.
 
 Cross-cutting behaviour is added by decorating any source. The default methods compose
 them fluently, innermost first:
@@ -392,6 +394,7 @@ annotation doesn't decide this; the source does, and every built-in source falls
 |---|---|
 | Spring Boot (`ConfigurationPropertiesFeatureToggles`) | `flipjack.default-enabled`, `false` by default |
 | `PollingFeatureToggles` | builder's `defaultEnabled(...)`, `false` if not set |
+| `OpenFeatureToggles` | builder's `defaultEnabled(...)`, `false` if not set; also used when the provider isn't ready or fails |
 | `InMemoryFeatureToggles` | constructor's `defaultEnabled`, `false` for the no-arg constructor |
 | `PropertiesFileFeatureToggles` | constructor's `defaultEnabled`, `false` for the one-arg constructor; also used when the file is missing |
 | Your own `FeatureToggles` | whatever its `isEnabled` returns |
@@ -434,6 +437,64 @@ and answers `isEnabled` from an in-memory snapshot:
   No `cached()` or `failSafe()` needed.
 - **Operable:** `refresh()` forces a load, `snapshot()` shows current state, `lastLoaded()`
   supports health checks, and `close()` stops the poller (closing an outer decorator does too).
+
+## Using an OpenFeature provider
+
+`flipjack-openfeature` makes any [OpenFeature](https://openfeature.dev) provider (flagd,
+Unleash, LaunchDarkly, ...) the toggle source. Evaluation, targeting and rollouts stay with
+the provider; flipjack does the routing. It is built and tested against OpenFeature Java SDK 1.23.
+
+```xml
+<dependency>
+    <groupId>org.kamranzafar.flipjack</groupId>
+    <artifactId>flipjack-openfeature</artifactId>
+    <version>1.1.0</version>
+</dependency>
+```
+
+```java
+OverridableFeatureToggles toggles = OpenFeatureToggles.builder(OpenFeatureAPI.getInstance().getClient())
+        .defaultEnabled(false)                  // returned whenever OpenFeature can't answer
+        .requireReady(Duration.ofSeconds(10))   // fail build() if the provider isn't ready in time
+        .onEvaluationError((feature, details) -> log.warn("{}: {}", feature, details.getErrorCode()))
+        .build()
+        .withOverrides();                       // kill switches still work if the platform is down
+```
+
+- **Boolean flags.** Each feature is evaluated with `getBooleanDetails`. A `FeatureContext`
+  becomes the evaluation context: the subject is the targeting key, the attributes are
+  string attributes. With no context, the API and client contexts still apply.
+- **Never throws.** A missing flag, a provider that isn't ready, a type mismatch or any
+  other error returns `defaultEnabled` and is passed to `onEvaluationError`. No `failSafe()`
+  needed. Without a handler, each error is logged as a warning once per feature and error
+  code, and again only after that feature has evaluated cleanly.
+- **No caching.** Providers already keep flags in memory and stream or poll for changes, so
+  `cached()` would only delay them.
+- **Ready before traffic:** until the provider is ready every feature answers
+  `defaultEnabled`; `requireReady(timeout)` fails startup instead, and fails at once if the
+  provider has failed fatally.
+- **Actuator:** `/actuator/flipjack` evaluates each listed feature through the provider on
+  every request, so platforms that record evaluations (for example as analytics events)
+  will count those calls.
+- **The provider is yours.** `close()` does nothing; shut the provider down through
+  `OpenFeatureAPI` as usual. `client()` returns the underlying `Client`.
+
+OpenFeature can't list its flags, so the [consistency check](#catching-misspelt-and-stale-feature-names)
+is skipped with this source: a misspelt feature name isn't caught at startup, but shows up
+as a `FLAG_NOT_FOUND` error the first time it is evaluated, and there is no "unused in the
+store" report.
+
+On Spring Boot, declare the source as a bean; it replaces the configuration-backed default:
+
+```java
+@Bean
+FeatureToggles featureToggles(Client client) {
+    return OpenFeatureToggles.builder(client)
+            .requireReady(Duration.ofSeconds(10))
+            .build()
+            .withOverrides();
+}
+```
 
 ## Per-user and per-tenant toggles
 
