@@ -34,7 +34,8 @@ import java.util.TreeSet;
 /**
  * Runs {@link FeatureConsistency} once all singletons exist (so every toggled bean has been
  * created and a polling source has done its first load), then warns or fails startup
- * according to {@code flipjack.consistency-check}.
+ * according to {@code flipjack.consistency-check}. If the source can't list its features the
+ * check is skipped, never failing startup: logged as a warning under {@code fail}, else as info.
  */
 public class FeatureConsistencyChecker implements SmartInitializingSingleton {
 
@@ -71,8 +72,13 @@ public class FeatureConsistencyChecker implements SmartInitializingSingleton {
         used.addAll(ApplicationFeatures.used(beanFactory, toggledBeans));
         Optional<FeatureConsistencyReport> result = FeatureConsistency.check(toggles.getObject(), List.of(), used);
         if (result.isEmpty()) {
-            LOG.debug("Flipjack consistency check skipped: the toggle source can't list its features "
-                    + "(or hasn't loaded yet)");
+            String skipped = "Flipjack consistency check skipped: the toggle source can't list its features "
+                    + "(or hasn't loaded yet), so misspelt feature names won't be caught at startup";
+            if (mode == ConsistencyCheck.FAIL) {
+                LOG.warn(skipped + "; consistency-check: fail has no effect with this source");
+            } else {
+                LOG.info(skipped);
+            }
             return;
         }
 
