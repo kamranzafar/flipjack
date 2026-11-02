@@ -49,11 +49,18 @@ cd flipjack
 mvn verify
 ```
 
-This builds every module and runs every test. CI runs the same command on Java 17, 21 and 25.
+This builds every module and runs every test. CI runs the same command on Java 17, 21 and 25,
+and once more against Spring Boot 4.1 (the default build uses 3.5). To test against Spring Boot
+4.1 locally:
+
+```sh
+mvn verify -Dspring-boot.version=4.1.2
+```
 
 CI also scans the dependencies, test scope included, for known vulnerabilities with
-[OSV-Scanner](https://google.github.io/osv-scanner/), and fails the build if it finds any. To
-run the same scan locally (with `osv-scanner` installed):
+[OSV-Scanner](https://google.github.io/osv-scanner/), for both Spring Boot versions, and fails
+the build if it finds any (see `.github/scripts/osv-scan.sh`). To run the same scan locally
+(with `osv-scanner` installed; add `-Dspring-boot.version=4.1.2` to `makeBom` for Spring Boot 4.1):
 
 ```sh
 mvn cyclonedx:makeBom

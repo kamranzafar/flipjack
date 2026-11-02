@@ -39,23 +39,44 @@ jobs:
         if: matrix.java == '17'
         env:
           OSV_SCANNER_VERSION: v2.7.0
-        run: |
-          mvn --batch-mode --no-transfer-progress cyclonedx:makeBom
-          base="https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}"
-          cd "$RUNNER_TEMP"
-          curl -sSfL -o osv-scanner_linux_amd64 "$base/osv-scanner_linux_amd64"
-          curl -sSfL -o osv-scanner_SHA256SUMS "$base/osv-scanner_SHA256SUMS"
-          grep ' osv-scanner_linux_amd64$' osv-scanner_SHA256SUMS | sha256sum --check --strict
-          chmod +x osv-scanner_linux_amd64
-          cd "$GITHUB_WORKSPACE"
-          args=()
-          for bom in */target/bom.cdx.json; do args+=(-L "$bom"); done
-          "$RUNNER_TEMP/osv-scanner_linux_amd64" scan source "${args[@]}"
+        run: .github/scripts/osv-scan.sh
 
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports-java-${{ matrix.java }}
+          path: '**/target/surefire-reports/'
+          retention-days: 7
+
+  # The default build uses Spring Boot 3.5; this proves the same code works on Spring Boot 4.1.
+  spring-boot-4:
+    name: Spring Boot 4.1
+    runs-on: ubuntu-latest
+    env:
+      SPRING_BOOT_VERSION: 4.1.2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build and test
+        run: mvn --batch-mode --no-transfer-progress verify -Dspring-boot.version=${SPRING_BOOT_VERSION}
+
+      - name: Scan dependencies for known vulnerabilities (OSV)
+        env:
+          OSV_SCANNER_VERSION: v2.7.0
+        run: .github/scripts/osv-scan.sh -Dspring-boot.version=${SPRING_BOOT_VERSION}
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-spring-boot-4
           path: '**/target/surefire-reports/'
           retention-days: 7
