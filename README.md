@@ -381,6 +381,26 @@ toggles.override("new-quote", false);     // kill switch during an incident
 | `OverridableFeatureToggles` | Runtime overrides win; clear to hand back to the source | Outside fail-safe, so kill switches always work |
 | `ObservedFeatureToggles` | Reports every evaluation to a `FeatureToggleListener` | Outermost, to see the final decision |
 
+### Features that aren't configured
+
+A feature that `@Toggleable` (or a toggled step) names but the source has no value for is
+**off** by default: the call goes to its fallback, or is handled per `whenDisabled`. The
+annotation doesn't decide this; the source does, and every built-in source falls back to a
+`defaultEnabled` flag that is `false` unless you change it:
+
+| Source | Default for a missing feature |
+|---|---|
+| Spring Boot (`ConfigurationPropertiesFeatureToggles`) | `flipjack.default-enabled`, `false` by default |
+| `PollingFeatureToggles` | builder's `defaultEnabled(...)`, `false` if not set |
+| `InMemoryFeatureToggles` | constructor's `defaultEnabled`, `false` for the no-arg constructor |
+| `PropertiesFileFeatureToggles` | constructor's `defaultEnabled`, `false` for the one-arg constructor; also used when the file is missing |
+| Your own `FeatureToggles` | whatever its `isEnabled` returns |
+
+Set the default to `true` to treat unconfigured features as on. `FailSafeFeatureToggles`'
+default is different: it applies only when the source throws, not when a feature is missing.
+To catch features that are missing by mistake, see
+[Catching misspelt and stale feature names](#catching-misspelt-and-stale-feature-names).
+
 ## Loading toggles from your config store
 
 Flipjack doesn't talk to SSM, Vault or anything else. Your application loads the toggles
