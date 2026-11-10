@@ -19,12 +19,18 @@ concurrency:
 
 jobs:
   build:
-    name: Java ${{ matrix.java }}
+    name: Java ${{ matrix.java }}, Spring Boot ${{ matrix.spring-boot }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         java: ['17', '21', '25']
+        spring-boot: ['3.5.16']
+        include:
+          - java: '17'
+            spring-boot: '3.3.13'
+          - java: '17'
+            spring-boot: '3.4.13'
 
     steps:
       - uses: actions/checkout@v4
@@ -36,13 +42,13 @@ jobs:
           cache: maven
 
       - name: Build and test
-        run: mvn --batch-mode --no-transfer-progress verify
+        run: mvn --batch-mode --no-transfer-progress verify -Dspring-boot.version=${{ matrix.spring-boot }}
 
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports-java-${{ matrix.java }}
+          name: test-reports-java-${{ matrix.java }}-spring-${{ matrix.spring-boot }}
           path: '**/target/surefire-reports/'
           retention-days: 7
 
