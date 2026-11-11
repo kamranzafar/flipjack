@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Spring Boot 3.3 and 3.4 support: the starter works on Spring Boot 3.3 and 3.4 as well as 3.5
+  and 4.1, and CI tests both older lines on Java 17.
+
 ### Documentation
 
 - The README's "one toggleable bean per interface" limitation is replaced: several toggleable
