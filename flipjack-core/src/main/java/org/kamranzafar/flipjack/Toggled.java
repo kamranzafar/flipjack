@@ -27,4 +27,12 @@ public interface Toggled {
      * Names of every feature (class and method level) this proxy checks.
      */
     Set<String> toggledFeatures();
+
+    /**
+     * Classes named by {@code fallback} in this component's {@link Toggleable} annotations,
+     * so a DI integration can check they exist before the first disabled call looks them up.
+     */
+    default Set<Class<?>> fallbackTypes() {
+        return Set.of();
+    }
 }

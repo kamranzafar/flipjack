@@ -36,16 +36,19 @@ final class FeatureRoutingHandler implements InvocationHandler {
     private final Supplier<? extends FeatureToggles> toggles;
     private final Supplier<? extends FeatureContext> context;
     private final Set<String> features;
+    private final Set<Class<?>> fallbackTypes;
 
     FeatureRoutingHandler(Object enabled, Object target, Map<Method, List<FeatureCheck>> routes,
                           Supplier<? extends FeatureToggles> toggles,
-                          Supplier<? extends FeatureContext> context, Set<String> features) {
+                          Supplier<? extends FeatureContext> context, Set<String> features,
+                          Set<Class<?>> fallbackTypes) {
         this.enabled = enabled;
         this.target = target;
         this.routes = routes;
         this.toggles = toggles;
         this.context = context;
         this.features = features;
+        this.fallbackTypes = fallbackTypes;
     }
 
     @Override
@@ -55,7 +58,7 @@ final class FeatureRoutingHandler implements InvocationHandler {
             return objectMethod(proxy, method, args);
         }
         if (declaring == Toggled.class) {
-            return features;
+            return method.getName().equals("fallbackTypes") ? fallbackTypes : features;
         }
 
         List<FeatureCheck> checks = routes.get(method);

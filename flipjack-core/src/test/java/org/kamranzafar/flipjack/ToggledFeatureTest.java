@@ -145,6 +145,7 @@ class ToggledFeatureTest {
         assertEquals("new discount", pricing.discount());
         toggles.enable("new-quote");
         assertEquals("new quote", pricing.quote());
+        assertEquals(Set.of(LegacyPricing.class), ((Toggled) pricing).fallbackTypes());
     }
 
     // ---- method-level: annotation on the interface ---------------------------
