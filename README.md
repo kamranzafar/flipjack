@@ -34,20 +34,20 @@ Maven:
 <dependency>
     <groupId>org.kamranzafar.flipjack</groupId>
     <artifactId>flipjack-core</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
 Gradle (Kotlin DSL, `build.gradle.kts`):
 
 ```kotlin
-implementation("org.kamranzafar.flipjack:flipjack-core:1.1.0")
+implementation("org.kamranzafar.flipjack:flipjack-core:1.1.1")
 ```
 
 Gradle (Groovy DSL, `build.gradle`):
 
 ```groovy
-implementation 'org.kamranzafar.flipjack:flipjack-core:1.1.0'
+implementation 'org.kamranzafar.flipjack:flipjack-core:1.1.1'
 ```
 
 On Spring Boot, use the starter instead; see [Spring Boot](#spring-boot).
@@ -450,20 +450,20 @@ Maven:
 <dependency>
     <groupId>org.kamranzafar.flipjack</groupId>
     <artifactId>flipjack-openfeature</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
 Gradle (Kotlin DSL, `build.gradle.kts`):
 
 ```kotlin
-implementation("org.kamranzafar.flipjack:flipjack-openfeature:1.1.0")
+implementation("org.kamranzafar.flipjack:flipjack-openfeature:1.1.1")
 ```
 
 Gradle (Groovy DSL, `build.gradle`):
 
 ```groovy
-implementation 'org.kamranzafar.flipjack:flipjack-openfeature:1.1.0'
+implementation 'org.kamranzafar.flipjack:flipjack-openfeature:1.1.1'
 ```
 
 ```java
@@ -635,20 +635,20 @@ Maven:
 <dependency>
     <groupId>org.kamranzafar.flipjack</groupId>
     <artifactId>flipjack-spring-boot-starter</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
 Gradle (Kotlin DSL, `build.gradle.kts`):
 
 ```kotlin
-implementation("org.kamranzafar.flipjack:flipjack-spring-boot-starter:1.1.0")
+implementation("org.kamranzafar.flipjack:flipjack-spring-boot-starter:1.1.1")
 ```
 
 Gradle (Groovy DSL, `build.gradle`):
 
 ```groovy
-implementation 'org.kamranzafar.flipjack:flipjack-spring-boot-starter:1.1.0'
+implementation 'org.kamranzafar.flipjack:flipjack-spring-boot-starter:1.1.1'
 ```
 
 Then annotate components; fallback classes are resolved as beans. Startup checks each
