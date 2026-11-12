@@ -1,6 +1,8 @@
 name: Inactive assignees
 
 # Reminds contributors after 10 quiet days on an assigned issue, and unassigns them after 14.
+# Reminds authors of pull requests 7 quiet days after changes were requested, and closes the
+# pull request 7 days after that.
 on:
   schedule:
     - cron: '17 6 * * *'
@@ -9,7 +11,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: inactive-assignees
