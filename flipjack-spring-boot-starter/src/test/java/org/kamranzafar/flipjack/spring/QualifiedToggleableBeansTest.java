@@ -17,7 +17,6 @@ package org.kamranzafar.flipjack.spring;
 
 import org.junit.jupiter.api.Test;
 import org.kamranzafar.flipjack.Toggleable;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The README's Spring guidance on several toggleable beans of one interface and on how fallback
@@ -187,15 +185,12 @@ class QualifiedToggleableBeansTest {
                 .run(context -> assertThat(context.getBean("euPricing", Pricing.class).quote()).isEqualTo("b"));
     }
 
-    // documents today's behaviour; #18 tracks moving this check to startup
     @Test
-    void aMissingFallbackBeanFailsTheFirstDisabledCallNotStartup() {
+    void aMissingFallbackBeanFailsStartup() {
         runner.withUserConfiguration(EuNew.class)
-                .withPropertyValues("flipjack.toggles.eu-new=false")
                 .run(context -> {
-                    assertThat(context).hasNotFailed();
-                    assertThatThrownBy(() -> context.getBean("euPricing", Pricing.class).quote())
-                            .isInstanceOf(NoSuchBeanDefinitionException.class);
+                    assertThat(context).hasFailed();
+                    assertThat(rootMessage(context.getStartupFailure())).contains(EuLegacy.class.getName());
                 });
     }
 }

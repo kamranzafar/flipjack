@@ -17,8 +17,10 @@ package org.kamranzafar.flipjack.spring;
 
 import org.kamranzafar.flipjack.FeatureContext;
 import org.kamranzafar.flipjack.FeatureToggles;
+import org.kamranzafar.flipjack.Toggled;
 import org.kamranzafar.flipjack.ToggledFeature;
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.*;
@@ -28,7 +30,11 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.function.SingletonSupplier;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Wraps toggleable beans with the core library's {@link ToggledFeature}. The core does all
@@ -46,6 +52,9 @@ public class ToggleableBeanPostProcessor implements BeanPostProcessor, BeanFacto
     private final Supplier<FeatureContextProvider> contextProvider;
     private BeanFactory beanFactory;
     private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+    // toggled beans whose fallbacks are checked once every singleton exists; guarded by itself
+    private final Map<String, Toggled> uncheckedFallbacks = new LinkedHashMap<>();
+    private boolean singletonsInstantiated;
 
     public ToggleableBeanPostProcessor(ObjectProvider<FeatureToggles> toggles) {
         this(toggles, () -> NO_CONTEXT);
@@ -64,11 +73,19 @@ public class ToggleableBeanPostProcessor implements BeanPostProcessor, BeanFacto
     }
 
     /**
-     * Resolves the context provider before traffic, so two candidate beans fail startup, not a request.
+     * Resolves the context provider and checks fallback beans before traffic, so a
+     * misconfiguration fails startup, not a request.
      */
     @Override
     public void afterSingletonsInstantiated() {
         contextProvider.get();
+        Map<String, Toggled> toCheck;
+        synchronized (uncheckedFallbacks) {
+            singletonsInstantiated = true;
+            toCheck = new LinkedHashMap<>(uncheckedFallbacks);
+            uncheckedFallbacks.clear();
+        }
+        toCheck.forEach(this::checkFallbacks);
     }
 
     @Override
@@ -103,8 +120,9 @@ public class ToggleableBeanPostProcessor implements BeanPostProcessor, BeanFacto
         // fallbackMethods must run on the real object, not on an AOP proxy around it
         Object rawTarget = AopProxyUtils.getSingletonTarget(bean);
 
+        Object proxy;
         try {
-            return ToggledFeature.builder((Class) interfaces[0])
+            proxy = ToggledFeature.builder((Class) interfaces[0])
                     .alsoImplements(Arrays.copyOfRange(interfaces, 1, interfaces.length))
                     .enabled(bean)
                     .annotatedType(targetClass)
@@ -117,6 +135,50 @@ public class ToggleableBeanPostProcessor implements BeanPostProcessor, BeanFacto
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new BeanCreationException(beanName, e.getMessage(), e);
         }
+
+        // @Lazy, prototype and scoped beans are created after startup, so they're checked here
+        boolean checkNow;
+        synchronized (uncheckedFallbacks) {
+            checkNow = singletonsInstantiated;
+            if (!checkNow) {
+                uncheckedFallbacks.put(beanName, (Toggled) proxy);
+            }
+        }
+        if (checkNow) {
+            checkFallbacks(beanName, (Toggled) proxy);
+        }
+        return proxy;
+    }
+
+    /**
+     * Fails for the two fallback mistakes that are certain to fail the first disabled call.
+     * Matches bean names only, so no bean is created; ambiguity is left to the call, since
+     * Spring can settle it in ways a check here can't predict.
+     */
+    private void checkFallbacks(String beanName, Toggled proxy) {
+        if (!(beanFactory instanceof ListableBeanFactory listable)) {
+            return;
+        }
+        String self = originalBeanName(beanName);
+        for (Class<?> type : proxy.fallbackTypes()) {
+            Set<String> candidates = Arrays.stream(
+                            BeanFactoryUtils.beanNamesForTypeIncludingAncestors(listable, type, true, false))
+                    .map(ToggleableBeanPostProcessor::originalBeanName)
+                    .collect(Collectors.toSet());
+            if (candidates.isEmpty()) {
+                throw new BeanCreationException(beanName, "fallback " + type.getName()
+                        + " has no bean, so the first call made with its feature off would fail; declare one");
+            }
+            if (candidates.equals(Set.of(self))) {
+                throw new BeanCreationException(beanName, "fallback " + type.getName() + " resolves to '"
+                        + self + "' itself, so a call made with its feature off would call back into it;"
+                        + " name the fallback implementation's own class");
+            }
+        }
+    }
+
+    private static String originalBeanName(String name) {
+        return ScopedProxyUtils.isScopedTarget(name) ? ScopedProxyUtils.getOriginalBeanName(name) : name;
     }
 
     /**

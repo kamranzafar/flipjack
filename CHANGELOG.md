@@ -8,8 +8,24 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
-- Spring Boot 3.3 and 3.4 support: the starter works on Spring Boot 3.3 and 3.4 as well as 3.5
-  and 4.1, and CI tests both older lines on Java 17.
+- CI now also tests the starter against Spring Boot 3.3 and 3.4 on Java 17.
+
+## [1.1.1] - 2026-11-12
+
+### Fixed
+
+- Spring: a `@Toggleable` bean's fallback class with no bean now fails startup, naming the
+  bean, instead of the first call made with its feature off. So does a fallback whose only
+  bean is the toggled bean itself, such as `fallback` naming the toggled interface, which used
+  to recurse until the stack overflowed. The check matches bean names and never creates a bean,
+  so scoped and `@Lazy` fallbacks behave as before; a fallback class with several beans is
+  still left to the call. `@Lazy`, prototype and scoped toggled beans are checked when created.
+  ([#18](https://github.com/kamranzafar/flipjack/issues/18))
+
+### Added
+
+- `Toggled.fallbackTypes()`: the fallback classes a proxy's annotations name, so DI
+  integrations can check them up front.
 
 ### Documentation
 
@@ -18,9 +34,6 @@ All notable changes to this project are documented here. The format follows
   pricing engine per region. What still fails is any lookup by type alone, including an
   injection that relies on a matching parameter name, and marking another implementation of a
   toggled interface `@Primary` yourself.
-- In Spring, fallback beans are looked up on the first call made with the feature off, not at
-  startup; the README now says so, instead of listing a missing fallback among the startup
-  checks.
 - `lazyToggles(...)`: the supplier is called on every call, so memoize it if creating the
   source is expensive.
 
@@ -90,6 +103,7 @@ First release.
 - Startup consistency check (`off`, `warn` or `fail`) and the `/actuator/flipjack` endpoint.
 - Built and tested against Spring Boot 3.5.
 
-[Unreleased]: https://github.com/kamranzafar/flipjack/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/kamranzafar/flipjack/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/kamranzafar/flipjack/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/kamranzafar/flipjack/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/kamranzafar/flipjack/releases/tag/v1.0.0

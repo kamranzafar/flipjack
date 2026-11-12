@@ -275,7 +275,8 @@ public final class ToggledFeature {
                 }
             }
 
-            Map<Method, List<FeatureCheck>> routes = new RouteResolver(this).resolve();
+            RouteResolver resolver = new RouteResolver(this);
+            Map<Method, List<FeatureCheck>> routes = resolver.resolve();
             Set<String> features = new TreeSet<>();
             routes.values().forEach(checks -> checks.forEach(check -> features.add(check.feature())));
 
@@ -287,7 +288,7 @@ public final class ToggledFeature {
             Object target = fallbackMethodTarget != null ? fallbackMethodTarget : enabled;
             Object proxy = Proxy.newProxyInstance(loader, proxyInterfaces.toArray(Class<?>[]::new),
                     new FeatureRoutingHandler(enabled, target, routes, toggles, context,
-                            Collections.unmodifiableSet(features)));
+                            Collections.unmodifiableSet(features), resolver.fallbackTypes()));
             return type.cast(proxy);
         }
 

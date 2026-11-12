@@ -29,6 +29,7 @@ final class RouteResolver {
     private final ToggledFeature.Builder<?> spec;
     private final Class<?> annotatedType;
     private final Object fallbackMethodTarget;
+    private final Set<Class<?>> fallbackTypes = new LinkedHashSet<>();
 
     RouteResolver(ToggledFeature.Builder<?> spec) {
         this.spec = spec;
@@ -135,8 +136,16 @@ final class RouteResolver {
         return new FeatureCheck(feature, action);
     }
 
+    /**
+     * Fallback classes named in annotations, collected by {@link #resolve()}.
+     */
+    Set<Class<?>> fallbackTypes() {
+        return Set.copyOf(fallbackTypes);
+    }
+
     private DisabledAction fallbackObject(Class<?> type, Collection<Class<?>> required) {
         requireImplementsAll(type, required);
+        fallbackTypes.add(type);
         if (spec.fallbackInstance != null && type.isInstance(spec.fallbackInstance)) {
             Object instance = spec.fallbackInstance;
             return DisabledActions.delegateTo(() -> instance);

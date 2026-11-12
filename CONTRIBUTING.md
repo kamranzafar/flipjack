@@ -35,6 +35,9 @@ fair for everyone:
 - **Stay active.** After 10 days with no comment from you and no open pull request
   referencing the issue, you'll get a reminder; after 14 days the issue is released. A comment
   with a progress update, or a draft pull request, keeps it yours.
+- **Keep your pull request moving.** If a review asks for changes and you haven't pushed or
+  commented 7 days later, you'll get a reminder; 7 days after that, the pull request is closed
+  and the issue is released. If you need more time, just say so in a comment.
 
 Reference the issue in your pull request, for example `Fixes #12`, so it's linked and closes
 when merged.
