@@ -6,6 +6,21 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Spring: a `@Toggleable` bean's fallback class with no bean now fails startup, naming the
+  bean, instead of the first call made with its feature off. So does a fallback whose only
+  bean is the toggled bean itself, such as `fallback` naming the toggled interface, which used
+  to recurse until the stack overflowed. The check matches bean names and never creates a bean,
+  so scoped and `@Lazy` fallbacks behave as before; a fallback class with several beans is
+  still left to the call. `@Lazy`, prototype and scoped toggled beans are checked when created.
+  ([#18](https://github.com/kamranzafar/flipjack/issues/18))
+
+### Added
+
+- `Toggled.fallbackTypes()`: the fallback classes a proxy's annotations name, so DI
+  integrations can check them up front.
+
 ### Documentation
 
 - The README's "one toggleable bean per interface" limitation is replaced: several toggleable
@@ -13,9 +28,6 @@ All notable changes to this project are documented here. The format follows
   pricing engine per region. What still fails is any lookup by type alone, including an
   injection that relies on a matching parameter name, and marking another implementation of a
   toggled interface `@Primary` yourself.
-- In Spring, fallback beans are looked up on the first call made with the feature off, not at
-  startup; the README now says so, instead of listing a missing fallback among the startup
-  checks.
 - `lazyToggles(...)`: the supplier is called on every call, so memoize it if creating the
   source is expensive.
 

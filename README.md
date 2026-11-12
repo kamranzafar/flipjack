@@ -651,11 +651,12 @@ Gradle (Groovy DSL, `build.gradle`):
 implementation 'org.kamranzafar.flipjack:flipjack-spring-boot-starter:1.1.0'
 ```
 
-Then annotate components; fallback classes are resolved as beans. A fallback bean is looked
-up on the first call made with its feature off, not at startup, so a fallback class with no
-bean, or with several and no `@Primary`, fails that call. Name a class that only the fallback
-implementation is, not the toggled interface, which would resolve to the toggled bean itself.
-Test with each feature off as well as on.
+Then annotate components; fallback classes are resolved as beans. Startup checks each
+fallback class by bean name, without creating any bean: it fails if the class has no bean, or
+if its only bean is the toggled bean itself, as when `fallback` names the toggled interface.
+`@Lazy`, prototype and scoped toggled beans are checked when they're created. The bean itself
+is looked up on the first call made with its feature off, so a fallback class with several
+beans and no `@Primary` fails that call. Test with each feature off as well as on.
 
 ```yaml
 flipjack:
@@ -872,8 +873,8 @@ Routes are resolved and validated once, when the proxy is built, so each call is
 lookup plus one `isEnabled` per check, and misconfiguration fails at startup: unknown or
 incompatible `fallbackMethod`, `fallback` and `fallbackMethod` on the same method,
 a `whenDisabled` that a fallback would override, `fallbackMethod` at class level, an annotated method that isn't on any proxied interface,
-or a fallback class with no instance available (in Spring, fallback beans are looked up on
-the first disabled call instead; see [Spring Boot](#spring-boot)).
+or a fallback class with no instance available (in Spring, a fallback class with no bean;
+see [Spring Boot](#spring-boot)).
 
 ## Rules and limitations
 
