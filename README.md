@@ -624,11 +624,11 @@ custom source can override it to take part.
 
 ## Spring Boot
 
-Add the starter, which brings in `flipjack-core`. It works with Spring Boot 3.3 to 3.5 and 4.1:
-the same jar is built against 3.5 and tested against 3.3, 3.4, 3.5 and 4.1. Your application's
-Spring Boot version decides which Spring jars you get, as long as it manages them, through
-`spring-boot-starter-parent` or by importing `spring-boot-dependencies`, as Spring Boot
-applications normally do.
+Add the starter, which brings in `flipjack-core`. It supports Spring Boot 3.5 and 4.1:
+the same jar is built against 3.5 and tested against both. CI also tests it against 3.3 and 3.4.
+Your application's Spring Boot version decides which Spring jars you get, as long as it
+manages them, through `spring-boot-starter-parent` or by importing `spring-boot-dependencies`,
+as Spring Boot applications normally do.
 
 Maven:
 
