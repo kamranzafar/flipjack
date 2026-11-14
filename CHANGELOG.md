@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- CI now also tests the starter against Spring Boot 3.3 and 3.4 on Java 17.
+
 ## [1.1.1] - 2026-11-12
 
 ### Fixed

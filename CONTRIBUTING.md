@@ -53,8 +53,8 @@ mvn verify
 ```
 
 This builds every module and runs every test. CI runs the same command on Java 17, 21 and 25,
-and once more against Spring Boot 4.1 (the default build uses 3.5). To test against Spring Boot
-4.1 locally:
+on Java 17 against Spring Boot 3.3 and 3.4, and once more against Spring Boot 4.1
+(the default build uses 3.5). To test against Spring Boot 4.1 locally:
 
 ```sh
 mvn verify -Dspring-boot.version=4.1.2
