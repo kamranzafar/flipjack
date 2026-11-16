@@ -45,7 +45,10 @@ jobs:
           cache: maven
 
       - name: Build and test
-        run: mvn --batch-mode --no-transfer-progress verify ${{ matrix.maven-args }}
+        run: mvn --batch-mode --no-transfer-progress install ${{ matrix.maven-args }}
+
+      - name: Build and test runnable example
+        run: mvn --batch-mode --no-transfer-progress -f examples/flipjack-examples/pom.xml verify ${{ matrix.maven-args }}
 
       - name: Upload test reports
         if: failure()
@@ -70,7 +73,10 @@ jobs:
           cache: maven
 
       - name: Build and test
-        run: mvn --batch-mode --no-transfer-progress verify -Dspring-boot.version=${SPRING_BOOT_4_VERSION}
+        run: mvn --batch-mode --no-transfer-progress install -Dspring-boot.version=${SPRING_BOOT_4_VERSION}
+
+      - name: Build and test runnable example
+        run: mvn --batch-mode --no-transfer-progress -f examples/flipjack-examples/pom.xml verify -Dspring-boot.version=${SPRING_BOOT_4_VERSION}
 
       - name: Upload test reports
         if: failure()
