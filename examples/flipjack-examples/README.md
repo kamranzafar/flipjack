@@ -9,7 +9,7 @@ its unauthenticated toggle route is for local demos only.
 From the repository root, install the current Flipjack snapshot and start the app:
 
 ```sh
-mvn -pl flipjack-spring-boot-starter -am install
+mvn -pl flipjack-spring-boot-starter -am install -DskipTests
 cd examples/flipjack-examples
 mvn spring-boot:run
 ```

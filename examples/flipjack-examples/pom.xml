@@ -30,7 +30,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flipjack.version>1.1.2-SNAPSHOT</flipjack.version>
         <spring-boot.version>3.5.16</spring-boot.version>
+        <!-- Keep in step with the root pom. Overrides the Jackson that Spring Boot 3.5.16 manages (2.21.4), which has known vulnerabilities -->
         <jackson.version>2.21.8</jackson.version>
+        <!-- Keep in step with the root pom. Overrides Spring Boot 3.5.16's log4j-api (2.24.3, test classpath only), which has a known vulnerability -->
         <log4j.version>2.25.5</log4j.version>
     </properties>
 

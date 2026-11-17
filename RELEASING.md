@@ -39,6 +39,10 @@ Replace `1.0.0` with the version being released and `1.0.1` with the next one.
    ```sh
    git checkout -b release-1.0.0
    mvn versions:set -DnewVersion=1.0.0 -DgenerateBackupPoms=false
+   # the example app is outside the reactor, so set its version and the Flipjack version it uses
+   mvn -f examples/flipjack-examples/pom.xml versions:set -DnewVersion=1.0.0 -DgenerateBackupPoms=false
+   mvn -f examples/flipjack-examples/pom.xml versions:set-property -Dproperty=flipjack.version \
+       -DnewVersion=1.0.0 -DgenerateBackupPoms=false
    # also update the version in README.md (Maven and Gradle snippets), and in CHANGELOG.md
    # rename "Unreleased" to the version and date, and update the compare links at the bottom
    git commit -am "Release 1.0.0"
@@ -81,6 +85,9 @@ Replace `1.0.0` with the version being released and `1.0.1` with the next one.
    ```sh
    git checkout -b start-1.0.1
    mvn versions:set -DnewVersion=1.0.1-SNAPSHOT -DgenerateBackupPoms=false
+   mvn -f examples/flipjack-examples/pom.xml versions:set -DnewVersion=1.0.1-SNAPSHOT -DgenerateBackupPoms=false
+   mvn -f examples/flipjack-examples/pom.xml versions:set-property -Dproperty=flipjack.version \
+       -DnewVersion=1.0.1-SNAPSHOT -DgenerateBackupPoms=false
    # add an "Unreleased" section and compare link to CHANGELOG.md; leave README.md on the
    # released version, since snapshots aren't published to Maven Central
    git commit -am "Start 1.0.1-SNAPSHOT"
