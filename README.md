@@ -52,6 +52,10 @@ implementation 'org.kamranzafar.flipjack:flipjack-core:1.1.1'
 
 On Spring Boot, use the starter instead; see [Spring Boot](#spring-boot).
 
+For a complete runnable Spring Boot application covering class-level and method-level
+fallbacks, per-user context, and runtime changes, see the
+[Flipjack example application](examples/flipjack-examples/README.md).
+
 ## Usage
 
 The examples keep feature names in one constants class (see
